@@ -42,12 +42,12 @@ public class DetailActivity extends Activity {
         int requestedPhotoWidth = getResources().getDisplayMetrics().widthPixels;
         ActivityDetailBinding binding = DataBindingUtil
                 .setContentView(this, R.layout.activity_detail);
-        binding.setPhoto(photo);
+        binding.setData((Photo) getIntent().getParcelableExtra(EXTRA_PHOTO));
 
         int slideDuration = getResources().getInteger(R.integer.detail_desc_slide_duration);
 
         Glide.with(this)
-                .load(photo.getPhotoUrl(requestedPhotoWidth))
+                .load(binding.getData().getPhotoUrl(requestedPhotoWidth))
                 .placeholder(R.color.placeholder)
                 .into(binding.photo);
         binding.toolbar.setNavigationOnClickListener(new View.OnClickListener() {
