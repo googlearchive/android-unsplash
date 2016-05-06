@@ -27,32 +27,29 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toolbar;
 
-import com.squareup.picasso.Picasso;
-
-import butterknife.Bind;
-import butterknife.BindInt;
-import butterknife.ButterKnife;
+import com.bumptech.glide.Glide;
 
 public class DetailActivity extends Activity {
 
     public static final String EXTRA_AUTHOR = "EXTRA_AUTHOR";
 
-    @Bind(R.id.toolbar)Toolbar toolbar;
-    @Bind(R.id.photo) ImageView imageView;
-    @Bind(R.id.author) TextView author;
-    @BindInt(R.integer.detail_desc_slide_duration) int slideDuration;
+    private Toolbar toolbar;
+    private ImageView imageView;
+    private TextView author;
+    private int slideDuration;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
-        ButterKnife.bind(this);
+        bindLayout();
 
-        Picasso.with(this)
+        Glide.with(this)
                 .load(getIntent().getData())
                 .placeholder(R.color.placeholder)
                 .into(imageView);
-        author.setText("—" + getIntent().getStringExtra(EXTRA_AUTHOR));
+        final String author = getIntent().getStringExtra(EXTRA_AUTHOR);
+        this.author.setText(String.format("—%s", author));
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -68,5 +65,12 @@ public class DetailActivity extends Activity {
             slide.setDuration(slideDuration);
             getWindow().setEnterTransition(slide);
         }
+    }
+
+    private void bindLayout() {
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        imageView = (ImageView) findViewById(R.id.photo);
+        author = (TextView) findViewById(R.id.author);
+        slideDuration = getResources().getInteger(R.integer.detail_desc_slide_duration);
     }
 }

@@ -24,7 +24,7 @@ import retrofit.Callback;
 import retrofit.http.GET;
 
 /**
- * Modeling the unsplash.it API.  I ❤ retrofit.
+ * Modeling the unsplash.it API.
  */
 public interface UnsplashService {
 

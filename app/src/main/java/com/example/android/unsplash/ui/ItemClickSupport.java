@@ -37,6 +37,7 @@ public class ItemClickSupport {
             }
         }
     };
+
     private View.OnLongClickListener mOnLongClickListener = new View.OnLongClickListener() {
         @Override
         public boolean onLongClick(View v) {
@@ -47,6 +48,7 @@ public class ItemClickSupport {
             return false;
         }
     };
+
     private RecyclerView.OnChildAttachStateChangeListener mAttachListener
             = new RecyclerView.OnChildAttachStateChangeListener() {
         @Override

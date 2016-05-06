@@ -29,6 +29,7 @@ public class ThreeTwoImageView extends ForegroundImageView {
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         int width = MeasureSpec.getSize(widthMeasureSpec);
         int desiredHeight = width * 2 / 3;
-        super.onMeasure(widthMeasureSpec, MeasureSpec.makeMeasureSpec(desiredHeight, MeasureSpec.EXACTLY));
+        super.onMeasure(widthMeasureSpec,
+                MeasureSpec.makeMeasureSpec(desiredHeight, MeasureSpec.EXACTLY));
     }
 }
