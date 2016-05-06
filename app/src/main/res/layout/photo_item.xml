@@ -13,13 +13,30 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<com.example.android.unsplash.ui.ForegroundImageView
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/photo"
-        android:layout_width="wrap_content"
-        android:layout_height="@dimen/image_height"
-        android:scaleType="centerCrop"
-        android:foreground="@drawable/grey_ripple"
-        android:clickable="true"
-        android:stateListAnimator="@animator/raise"
-        android:transitionName="@string/transition_photo" />
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+    <data>
+        <variable name="data" type="com.example.android.unsplash.data.model.Photo" />
+    </data>
+    <FrameLayout android:layout_width="match_parent"
+                 android:layout_height="@dimen/image_height"
+                 android:stateListAnimator="@animator/raise"
+                 android:foreground="@drawable/grey_ripple">
+        <ImageView
+                android:id="@+id/photo"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:transitionName="@string/transition_photo" />
+
+        <TextView android:id="@+id/author"
+                  android:text="@{data.author}"
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:layout_gravity="bottom|end"
+                  android:paddingBottom="@dimen/padding_normal"
+                  android:textColor="#ff00ff"
+                  android:paddingStart="@dimen/padding_normal"
+                  android:paddingEnd="@dimen/padding_normal"
+                  android:transitionName="@string/transition_author"/>
+    </FrameLayout>
+</layout>

@@ -68,7 +68,8 @@
                         android:paddingTop="@dimen/padding_large"
                         android:text='@{"— " + data.author}'
                         android:textAppearance="@android:style/TextAppearance.Material.Headline"
-                        android:textColor="?android:textColorPrimary" />
+                        android:textColor="?android:textColorPrimary"
+                        android:transitionName="@string/transition_author"/>
 
                 <TextView
                         android:layout_width="match_parent"

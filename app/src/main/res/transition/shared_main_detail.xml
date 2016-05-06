@@ -15,11 +15,25 @@
   -->
 
 <transitionSet xmlns:android="http://schemas.android.com/apk/res/android">
-    <changeBounds/>
-    <changeTransform/>
-    <changeClipBounds/>
-    <changeImageTransform/>
-    <arcMotion
-            android:minimumHorizontalAngle="40"
-            android:duration="1000" />
+    <transitionSet>
+        <targets>
+            <target android:targetId="@id/photo" />
+        </targets>
+        <changeBounds />
+        <changeTransform />
+        <changeClipBounds />
+        <changeImageTransform />
+        <arcMotion
+                android:minimumHorizontalAngle="40"
+                android:duration="1000" />
+    </transitionSet>
+    <transitionSet>
+        <transition class="com.example.android.unsplash.transition.TextResize" />
+        <changeBounds />
+        <changeTransform />
+        <targets>
+            <target android:targetId="@id/author" />
+        </targets>
+        <autoTransition />
+    </transitionSet>
 </transitionSet>

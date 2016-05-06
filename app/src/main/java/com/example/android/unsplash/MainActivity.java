@@ -19,13 +19,14 @@ package com.example.android.unsplash;
 import android.app.Activity;
 import android.app.ActivityOptions;
 import android.content.Intent;
+import android.databinding.DataBindingUtil;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.view.LayoutInflater;
+import android.util.Pair;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
@@ -33,7 +34,7 @@ import android.widget.ProgressBar;
 import com.bumptech.glide.Glide;
 import com.example.android.unsplash.data.UnsplashService;
 import com.example.android.unsplash.data.model.Photo;
-import com.example.android.unsplash.ui.ForegroundImageView;
+import com.example.android.unsplash.databinding.PhotoItemBinding;
 import com.example.android.unsplash.ui.ItemClickSupport;
 
 import java.util.List;
@@ -83,19 +84,23 @@ public class MainActivity extends Activity {
         grid.addItemDecoration(new GridMarginDecoration(gridSpacing));
         grid.setHasFixedSize(true);
 
-
         ItemClickSupport.addTo(grid).setOnItemClickListener(
                 new ItemClickSupport.OnItemClickListener() {
                     @Override
-                    public void onItemClicked(RecyclerView recyclerView, int position, View view) {
-
+                    public void onItemClicked(RecyclerView recyclerView, int position, View v) {
                         Photo photo = adapter.getItem(position);
                         Intent intent = new Intent(MainActivity.this, DetailActivity.class);
                         intent.setAction(Intent.ACTION_VIEW);
                         intent.putExtra(DetailActivity.EXTRA_PHOTO, photo);
+                        PhotoItemBinding binding = ((PhotoViewHolder) recyclerView
+                                .getChildViewHolder(v)).binding;
+                        Pair<View, String> authorPair = new Pair<View, String>(
+                                binding.author, binding.author.getTransitionName());
+                        Pair<View, String> photoPair = new Pair<View, String>(
+                                binding.photo, binding.photo.getTransitionName());
                         MainActivity.this.startActivity(intent,
                                 ActivityOptions.makeSceneTransitionAnimation(MainActivity.this,
-                                        view, view.getTransitionName()).toBundle());
+                                        authorPair, photoPair).toBundle());
                     }
                 });
 
@@ -130,11 +135,12 @@ public class MainActivity extends Activity {
 
     /* protected */ static class PhotoViewHolder extends RecyclerView.ViewHolder {
 
-        ForegroundImageView imageView;
 
-        public PhotoViewHolder(View itemView) {
-            super(itemView);
-            imageView = (ForegroundImageView) itemView.findViewById(R.id.photo);
+        private final PhotoItemBinding binding;
+
+        public PhotoViewHolder(PhotoItemBinding itemBinding) {
+            super(itemBinding.getRoot());
+            binding = itemBinding;
         }
     }
 
@@ -167,17 +173,17 @@ public class MainActivity extends Activity {
         @Override
         public PhotoViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             return new PhotoViewHolder(
-                    LayoutInflater.from(MainActivity.this)
-                            .inflate(R.layout.photo_item, parent, false));
+                    (PhotoItemBinding) DataBindingUtil.inflate(getLayoutInflater(),
+                            R.layout.photo_item, parent, false));
         }
 
         @Override
         public void onBindViewHolder(final PhotoViewHolder holder, final int position) {
-            final Photo photo = photos.get(position);
+            holder.binding.setData(photos.get(position));
             Glide.with(MainActivity.this)
-                    .load(photo.getPhotoUrl(requestedPhotoWidth))
+                    .load(holder.binding.getData().getPhotoUrl(requestedPhotoWidth))
                     .placeholder(R.color.placeholder)
-                    .into(holder.imageView);
+                    .into(holder.binding.photo);
         }
 
         @Override

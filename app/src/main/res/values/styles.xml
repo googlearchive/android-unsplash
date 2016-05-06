@@ -29,7 +29,7 @@
     </style>
 
     <style name="AppTheme.Details">
-        <item name="android:windowSharedElementEnterTransition">@transition/shared_photo</item>
+        <item name="android:windowSharedElementEnterTransition">@transition/shared_main_detail</item>
     </style>
 
 </resources>
