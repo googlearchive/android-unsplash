@@ -17,40 +17,40 @@
 package com.example.android.unsplash;
 
 import android.app.Activity;
+import android.databinding.DataBindingUtil;
 import android.os.Build;
 import android.os.Bundle;
 import android.transition.Slide;
 import android.view.Gravity;
 import android.view.View;
 import android.view.animation.AnimationUtils;
-import android.widget.ImageView;
-import android.widget.TextView;
-import android.widget.Toolbar;
 
 import com.bumptech.glide.Glide;
+import com.example.android.unsplash.data.model.Photo;
+import com.example.android.unsplash.databinding.ActivityDetailBinding;
 
 public class DetailActivity extends Activity {
 
-    public static final String EXTRA_AUTHOR = "EXTRA_AUTHOR";
+    public static final String EXTRA_PHOTO = "EXTRA_PHOTO";
 
-    private Toolbar toolbar;
-    private ImageView imageView;
-    private TextView author;
-    private int slideDuration;
+    private Photo photo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_detail);
-        bindLayout();
+        photo = getIntent().getParcelableExtra(EXTRA_PHOTO);
+        int requestedPhotoWidth = getResources().getDisplayMetrics().widthPixels;
+        ActivityDetailBinding binding = DataBindingUtil
+                .setContentView(this, R.layout.activity_detail);
+        binding.setPhoto(photo);
+
+        int slideDuration = getResources().getInteger(R.integer.detail_desc_slide_duration);
 
         Glide.with(this)
-                .load(getIntent().getData())
+                .load(photo.getPhotoUrl(requestedPhotoWidth))
                 .placeholder(R.color.placeholder)
-                .into(imageView);
-        final String author = getIntent().getStringExtra(EXTRA_AUTHOR);
-        this.author.setText(String.format("—%s", author));
-        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+                .into(binding.photo);
+        binding.toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 finishAfterTransition();
@@ -67,10 +67,4 @@ public class DetailActivity extends Activity {
         }
     }
 
-    private void bindLayout() {
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
-        imageView = (ImageView) findViewById(R.id.photo);
-        author = (TextView) findViewById(R.id.author);
-        slideDuration = getResources().getInteger(R.integer.detail_desc_slide_duration);
-    }
 }

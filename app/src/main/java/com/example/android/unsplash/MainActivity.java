@@ -20,7 +20,6 @@ import android.app.Activity;
 import android.app.ActivityOptions;
 import android.content.Intent;
 import android.graphics.Rect;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.GridLayoutManager;
@@ -53,13 +52,14 @@ public class MainActivity extends Activity {
     private int columns;
     private int gridSpacing;
     private PhotoAdapter adapter;
-    private String photoUrlBase;
+    private int requestedPhotoWidth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         bindLayout();
+        requestedPhotoWidth = getResources().getDisplayMetrics().widthPixels;
 
         GridLayoutManager gridLayoutManager = new GridLayoutManager(this, columns);
         gridLayoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
@@ -83,9 +83,6 @@ public class MainActivity extends Activity {
         grid.addItemDecoration(new GridMarginDecoration(gridSpacing));
         grid.setHasFixedSize(true);
 
-        photoUrlBase = "https://unsplash.it/"
-                + getResources().getDisplayMetrics().widthPixels
-                + "?image=";
 
         ItemClickSupport.addTo(grid).setOnItemClickListener(
                 new ItemClickSupport.OnItemClickListener() {
@@ -95,8 +92,7 @@ public class MainActivity extends Activity {
                         Photo photo = adapter.getItem(position);
                         Intent intent = new Intent(MainActivity.this, DetailActivity.class);
                         intent.setAction(Intent.ACTION_VIEW);
-                        intent.setData(Uri.parse(photoUrlBase + photo.id));
-                        intent.putExtra(DetailActivity.EXTRA_AUTHOR, photo.author);
+                        intent.putExtra(DetailActivity.EXTRA_PHOTO, photo);
                         MainActivity.this.startActivity(intent,
                                 ActivityOptions.makeSceneTransitionAnimation(MainActivity.this,
                                         view, view.getTransitionName()).toBundle());
@@ -111,7 +107,6 @@ public class MainActivity extends Activity {
         unsplashApi.getFeed(new Callback<List<Photo>>() {
             @Override
             public void success(List<Photo> photos, Response response) {
-                //grid.setAdapter(new PhotoAdapter(photos));
                 // the first items are really boring, get the last <n>
                 adapter = new PhotoAdapter(photos.subList(photos.size() - PHOTO_COUNT, photos
                         .size()));
@@ -179,9 +174,8 @@ public class MainActivity extends Activity {
         @Override
         public void onBindViewHolder(final PhotoViewHolder holder, final int position) {
             final Photo photo = photos.get(position);
-            String url = photoUrlBase + photo.id;
             Glide.with(MainActivity.this)
-                    .load(url)
+                    .load(photo.getPhotoUrl(requestedPhotoWidth))
                     .placeholder(R.color.placeholder)
                     .into(holder.imageView);
         }
