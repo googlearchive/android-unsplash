@@ -14,10 +14,22 @@
  * limitations under the License.
  */
 
-package com.example.android.unsplash.view;
+package com.example.android.unsplash.ui.grid;
 
-public class ImageSize {
+import android.support.v7.widget.RecyclerView;
 
-    public static final int[] NORMAL = new int[] {480, 400};
-    public static final int[] LARGE = new int[] {960, 800};
+import com.example.android.unsplash.databinding.PhotoItemBinding;
+
+public class PhotoViewHolder extends RecyclerView.ViewHolder {
+
+    private final PhotoItemBinding binding;
+
+    public PhotoViewHolder(PhotoItemBinding itemBinding) {
+        super(itemBinding.getRoot());
+        binding = itemBinding;
+    }
+
+    public PhotoItemBinding getBinding() {
+        return binding;
+    }
 }

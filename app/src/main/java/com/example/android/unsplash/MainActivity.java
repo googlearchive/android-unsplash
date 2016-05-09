@@ -31,9 +31,9 @@ import com.example.android.unsplash.data.UnsplashService;
 import com.example.android.unsplash.data.model.Photo;
 import com.example.android.unsplash.databinding.PhotoItemBinding;
 import com.example.android.unsplash.ui.ItemClickSupport;
-import com.example.android.unsplash.view.GridMarginDecoration;
-import com.example.android.unsplash.view.PhotoAdapter;
-import com.example.android.unsplash.view.PhotoViewHolder;
+import com.example.android.unsplash.ui.grid.GridMarginDecoration;
+import com.example.android.unsplash.ui.grid.PhotoAdapter;
+import com.example.android.unsplash.ui.grid.PhotoViewHolder;
 
 import java.util.List;
 

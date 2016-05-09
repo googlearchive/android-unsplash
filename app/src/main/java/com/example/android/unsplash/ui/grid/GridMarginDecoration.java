@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.example.android.unsplash.view;
+package com.example.android.unsplash.ui.grid;
 
 import android.graphics.Rect;
 import android.support.v7.widget.RecyclerView;

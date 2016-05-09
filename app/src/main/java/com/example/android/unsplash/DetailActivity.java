@@ -28,7 +28,7 @@ import android.view.animation.AnimationUtils;
 import com.bumptech.glide.Glide;
 import com.example.android.unsplash.data.model.Photo;
 import com.example.android.unsplash.databinding.ActivityDetailBinding;
-import com.example.android.unsplash.view.ImageSize;
+import com.example.android.unsplash.ui.ImageSize;
 
 public class DetailActivity extends Activity {
 

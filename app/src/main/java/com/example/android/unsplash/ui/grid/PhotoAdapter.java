@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.example.android.unsplash.view;
+package com.example.android.unsplash.ui.grid;
 
 import android.content.Context;
 import android.databinding.DataBindingUtil;
@@ -27,6 +27,7 @@ import com.bumptech.glide.Glide;
 import com.example.android.unsplash.R;
 import com.example.android.unsplash.data.model.Photo;
 import com.example.android.unsplash.databinding.PhotoItemBinding;
+import com.example.android.unsplash.ui.ImageSize;
 
 import java.util.List;
 
