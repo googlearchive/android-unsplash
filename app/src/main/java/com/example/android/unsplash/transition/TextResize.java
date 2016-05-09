@@ -28,42 +28,43 @@ import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
-import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.transition.Transition;
 import android.transition.TransitionValues;
 import android.util.AttributeSet;
-import android.util.Property;
 import android.util.TypedValue;
-import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+/**
+ * Transitions a TextView from one font size to another. This does not
+ * do any animation of TextView content and if the text changes, this
+ * transition will not run.
+ * <p>
+ * The animation works by capturing a bitmap of the text at the start
+ * and end states. It then scales the start bitmap until it reaches
+ * a threshold and switches to the scaled end bitmap for the remainder
+ * of the animation. This keeps the jump in bitmaps in the middle of
+ * the animation, where it is less noticeable than at the beginning
+ * or end of the animation.
+ */
 public class TextResize extends Transition {
+    private static final String FONT_SIZE = "TextResize:fontSize";
     private static final String DATA = "TextResize:data";
 
     private static final String[] PROPERTIES = {
-            DATA,
+            // We only care about FONT_SIZE. If anything else changes, we don't
+            // want this transition to be called to create an Animator.
+            FONT_SIZE,
     };
-
-    private static final Property<View, Rect> PADDING =
-            new Property<View, Rect>(Rect.class, "padding") {
-                @Override
-                public Rect get(View view) {
-                    return new Rect(view.getPaddingLeft(), view.getPaddingTop(),
-                            view.getPaddingRight(), view.getPaddingBottom());
-                }
-
-                @Override
-                public void set(View view, Rect padding) {
-                    view.setPadding(padding.left, padding.top, padding.right, padding.bottom);
-                }
-            };
 
     public TextResize() {
         addTarget(TextView.class);
     }
 
+    /**
+     * Constructor used from XML.
+     */
     public TextResize(Context context, AttributeSet attrs) {
         super(context, attrs);
         addTarget(TextView.class);
@@ -89,6 +90,8 @@ public class TextResize extends Transition {
             return;
         }
         final TextView view = (TextView) transitionValues.view;
+        final float fontSize = view.getTextSize();
+        transitionValues.values.put(FONT_SIZE, fontSize);
         final TextResizeData data = new TextResizeData(view);
         transitionValues.values.put(DATA, data);
     }
@@ -100,27 +103,41 @@ public class TextResize extends Transition {
             return null;
         }
         final TextView textView = (TextView) endValues.view;
+        float startFontSize = (Float) startValues.values.get(FONT_SIZE);
+        float endFontSize = (Float) endValues.values.get(FONT_SIZE);
         final TextResizeData startData = (TextResizeData) startValues.values.get(DATA);
         final TextResizeData endData = (TextResizeData) endValues.values.get(DATA);
-        return animateSize(textView, startData, endData);
-    }
 
-    private Animator animateSize(final TextView textView, final TextResizeData startData,
-                                 TextResizeData endData) {
+        // Capture the end bitmap -- it is already set up for it, so we can capture now.
         final Bitmap endBitmap = captureTextBitmap(textView);
+        if (endBitmap == null) {
+            endFontSize = 0;
+        }
 
+        // Capture the start bitmap -- we need to set the values to the start values first
         textView.setPadding(startData.paddingLeft, startData.paddingTop, startData.paddingRight,
                 startData.paddingBottom);
         textView.setRight(textView.getLeft() + startData.width);
         textView.setBottom(textView.getTop() + startData.height);
-        textView.setTextSize(TypedValue.COMPLEX_UNIT_PX, startData.fontSize);
+        textView.setTextSize(TypedValue.COMPLEX_UNIT_PX, startFontSize);
         final Bitmap startBitmap = captureTextBitmap(textView);
+
+        // Reset the values to the end values
         textView.setPadding(endData.paddingLeft, endData.paddingTop, endData.paddingRight,
                 endData.paddingBottom);
         textView.setRight(textView.getLeft() + endData.width);
         textView.setBottom(textView.getTop() + endData.height);
-        textView.setTextSize(TypedValue.COMPLEX_UNIT_PX, endData.fontSize);
+        textView.setTextSize(TypedValue.COMPLEX_UNIT_PX, endFontSize);
+        if (startBitmap == null) {
+            startFontSize = 0;
+        }
 
+        if (startFontSize == 0 && endFontSize == 0) {
+            return null; // Can't animate null bitmaps
+        }
+
+        // Set the colors of the TextView so that nothing is drawn.
+        // Only draw the bitmaps in the overlay.
         final ColorStateList textColors = textView.getTextColors();
         final ColorStateList hintColors = textView.getHintTextColors();
         final int highlightColor = textView.getHighlightColor();
@@ -130,13 +147,15 @@ public class TextResize extends Transition {
         textView.setHighlightColor(Color.TRANSPARENT);
         textView.setLinkTextColor(Color.TRANSPARENT);
 
-        final float endScale = endData.fontSize / startData.fontSize;
+        // Create the drawable that will be animated in the TextView's overlay.
+        // Ensure that it is showing the start state now.
         final SwitchBitmapDrawable drawable =
-                new SwitchBitmapDrawable(startBitmap, endBitmap, endScale);
+                new SwitchBitmapDrawable(startBitmap, endBitmap, startFontSize, endFontSize);
         textView.getOverlay().add(drawable);
         drawable.setLeft(startData.paddingLeft);
         drawable.setTop(startData.paddingTop);
 
+        // Animate the progress (scale), and the padding
         Animator progress = ObjectAnimator.ofFloat(drawable, "progress", 0, 1);
         Animator left = ObjectAnimator.ofInt(drawable, "left", startData.paddingLeft,
                 endData.paddingLeft);
@@ -145,6 +164,8 @@ public class TextResize extends Transition {
 
         AnimatorSet animatorSet = new AnimatorSet();
         animatorSet.playTogether(left, top, progress);
+
+        // Remove the overlay and reset the colors after the animation completes
         animatorSet.addListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(Animator animation) {
@@ -163,6 +184,9 @@ public class TextResize extends Transition {
         textView.setBackground(null);
         int width = textView.getWidth() - textView.getPaddingLeft() - textView.getPaddingRight();
         int height = textView.getHeight() - textView.getPaddingTop() - textView.getPaddingBottom();
+        if (width == 0 || height == 0) {
+            return null;
+        }
         Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
         canvas.translate(-textView.getPaddingLeft(), -textView.getPaddingTop());
@@ -171,65 +195,98 @@ public class TextResize extends Transition {
         return bitmap;
     }
 
+    /**
+     * This Drawable is used to scale the start and end bitmaps and switch between them
+     * at the appropriate progress.
+     */
     private static class SwitchBitmapDrawable extends Drawable {
-        private final Bitmap mStartBitmap;
-        private final Bitmap mEndBitmap;
-        private final Paint mPaint = new Paint();
-        private final float mEndScale;
-        private final float mProgressJump;
-        private int mLeft;
-        private int mTop;
-        private float mProgress;
+        private final Bitmap startBitmap;
+        private final Bitmap endBitmap;
+        private final Paint paint = new Paint();
+        private final float startFontSize;
+        private final float endFontSize;
+        private int left;
+        private int top;
+        private float progress;
 
-        public SwitchBitmapDrawable(Bitmap startBitmap, Bitmap endBitmap, float endScale) {
-            mStartBitmap = startBitmap;
-            mEndBitmap = endBitmap;
-            mEndScale = endScale;
-            mProgressJump = endScale > 1 ? 0.3f : 0.7f;
+        public SwitchBitmapDrawable(Bitmap startBitmap, Bitmap endBitmap, float startFontSize,
+                                    float endFontSize) {
+            this.startBitmap = startBitmap;
+            this.endBitmap = endBitmap;
+            this.startFontSize = startFontSize;
+            this.endFontSize = endFontSize;
         }
 
+        /**
+         * Offsets the left of the drawable by left. Used for animating the left padding.
+         * @param left The left padding in pixels.
+         */
         public void setLeft(int left) {
-            mLeft = left;
+            this.left = left;
             invalidateSelf();
         }
 
+        /**
+         * Offsets the top of the drawable by top. Used for animating the top padding.
+         * @param top The top padding in pixels.
+         */
         public void setTop(int top) {
-            mTop = top;
+            this.top = top;
             invalidateSelf();
         }
 
+        /**
+         * Sets the progress of the scaled animation. This is used to choose how the bitmaps
+         * are scaled and which bitmap to use.
+         * @param progress The progress of the animation, between 0 and 1, inclusive.
+         */
         public void setProgress(float progress) {
-            mProgress = progress;
+            this.progress = progress;
             invalidateSelf();
         }
 
+        /**
+         * @return The left padding used to offset the drawable.
+         */
         public int getLeft() {
-            return mLeft;
+            return left;
         }
 
+        /**
+         * @return The top padding used to offset the drawable.
+         */
         public int getTop() {
-            return mTop;
+            return top;
         }
 
+        /**
+         * @return The progress used to scale the bitmaps and threshold.
+         */
         public float getProgress() {
-            return mProgress;
+            return progress;
         }
 
         @Override
         public void draw(Canvas canvas) {
             int saveCount = canvas.save();
-            canvas.translate(mLeft, mTop);
+            canvas.translate(left, top);
 
-            final float scale = 1 + (mProgress * (mEndScale - 1));
-            if (mProgress < mProgressJump) {
+            // The threshold changes depending on the target font sizes. We want to switch
+            // later if the difference is greater (scaled-up fonts look bad). To the point
+            // where a bitmap of text with a font size of 0 will never be used.
+            float threshold = startFontSize / (startFontSize + endFontSize);
+            // fontSize is the target scaled font size
+            float fontSize = startFontSize + (progress * (endFontSize - startFontSize));
+            if (progress < threshold) {
                 // draw start bitmap
+                final float scale = fontSize / startFontSize;
                 canvas.scale(scale, scale);
-                canvas.drawBitmap(mStartBitmap, 0, 0, mPaint);
+                canvas.drawBitmap(startBitmap, 0, 0, paint);
             } else {
                 // draw end bitmap
-                float endScale = scale / mEndScale;
-                canvas.scale(endScale, endScale);
-                canvas.drawBitmap(mEndBitmap, 0, 0, mPaint);
+                final float scale = fontSize / endFontSize;
+                canvas.scale(scale, scale);
+                canvas.drawBitmap(endBitmap, 0, 0, paint);
             }
             canvas.restoreToCount(saveCount);
         }
@@ -248,8 +305,13 @@ public class TextResize extends Transition {
         }
     }
 
+    /**
+     * Contains all the non-font-size data used by the TextResize transition.
+     * None of these values should trigger the transition, so they are not listed
+     * in PROPERTIES. These are captured together to avoid boxing of all the
+     * primitives while adding to TransitionValues.
+     */
     static class TextResizeData {
-        public final float fontSize;
         public final int paddingLeft;
         public final int paddingTop;
         public final int paddingRight;
@@ -258,22 +320,12 @@ public class TextResize extends Transition {
         public final int height;
 
         public TextResizeData(TextView textView) {
-            this.fontSize = textView.getTextSize();
             this.paddingLeft = textView.getPaddingLeft();
             this.paddingTop = textView.getPaddingTop();
             this.paddingRight = textView.getPaddingRight();
             this.paddingBottom = textView.getPaddingBottom();
             this.width = textView.getWidth();
             this.height = textView.getHeight();
-        }
-
-        @Override
-        public boolean equals(Object that) {
-            if (!(that instanceof TextResizeData)) {
-                return false;
-            }
-            TextResizeData other = (TextResizeData) that;
-            return other.fontSize == this.fontSize;
         }
     }
 }
