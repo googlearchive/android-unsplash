@@ -33,12 +33,9 @@ public class DetailActivity extends Activity {
 
     public static final String EXTRA_PHOTO = "EXTRA_PHOTO";
 
-    private Photo photo;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        photo = getIntent().getParcelableExtra(EXTRA_PHOTO);
         int requestedPhotoWidth = getResources().getDisplayMetrics().widthPixels;
         ActivityDetailBinding binding = DataBindingUtil
                 .setContentView(this, R.layout.activity_detail);

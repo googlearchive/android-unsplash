@@ -16,24 +16,17 @@
 
 <transitionSet xmlns:android="http://schemas.android.com/apk/res/android">
     <transitionSet>
-        <targets>
-            <target android:targetId="@id/photo" />
-        </targets>
+        <targets android:targetId="@id/photo" />
         <changeBounds />
         <changeTransform />
         <changeClipBounds />
         <changeImageTransform />
-        <arcMotion
-                android:minimumHorizontalAngle="40"
-                android:duration="1000" />
+        <arcMotion android:minimumHorizontalAngle="40" />
     </transitionSet>
     <transitionSet>
+        <targets android:targetName="@string/transition_author" />
         <transition class="com.example.android.unsplash.transition.TextResize" />
+        <arcMotion />
         <changeBounds />
-        <changeTransform />
-        <targets>
-            <target android:targetId="@id/author" />
-        </targets>
-        <autoTransition />
     </transitionSet>
 </transitionSet>
