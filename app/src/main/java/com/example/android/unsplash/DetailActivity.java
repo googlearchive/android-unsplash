@@ -28,6 +28,7 @@ import android.view.animation.AnimationUtils;
 import com.bumptech.glide.Glide;
 import com.example.android.unsplash.data.model.Photo;
 import com.example.android.unsplash.databinding.ActivityDetailBinding;
+import com.example.android.unsplash.view.ImageSize;
 
 public class DetailActivity extends Activity {
 
@@ -46,6 +47,7 @@ public class DetailActivity extends Activity {
         Glide.with(this)
                 .load(binding.getData().getPhotoUrl(requestedPhotoWidth))
                 .placeholder(R.color.placeholder)
+                .override(ImageSize.NORMAL[0], ImageSize.NORMAL[1])
                 .into(binding.photo);
         binding.toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
