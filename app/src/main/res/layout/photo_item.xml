@@ -29,11 +29,12 @@
                 android:transitionName="@string/transition_photo" />
 
         <TextView android:id="@+id/author"
-                  android:text='@{"— " + data.author}'
+                  android:text='@{data.author}'
                   android:layout_width="wrap_content"
                   android:layout_height="wrap_content"
                   android:layout_gravity="bottom|end"
                   android:textColor="@color/placeholder"
+                  android:lines="1"
                   android:paddingBottom="@dimen/padding_normal"
                   android:paddingStart="@dimen/padding_normal"
                   android:paddingEnd="@dimen/padding_normal"
