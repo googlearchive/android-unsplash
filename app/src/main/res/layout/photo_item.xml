@@ -29,15 +29,17 @@
                 android:transitionName="@string/transition_photo" />
 
         <TextView android:id="@+id/author"
-                  android:text='@{data.author}'
-                  android:layout_width="wrap_content"
+                  android:layout_width="match_parent"
                   android:layout_height="wrap_content"
+                  android:text='@{data.author}'
                   android:layout_gravity="bottom|end"
                   android:textColor="@color/placeholder"
                   android:lines="1"
-                  android:paddingBottom="@dimen/padding_normal"
+                  android:paddingTop="@dimen/padding_small"
+                  android:paddingBottom="@dimen/padding_small"
                   android:paddingStart="@dimen/padding_normal"
                   android:paddingEnd="@dimen/padding_normal"
-                  android:transitionName="@string/transition_author"/>
+                  android:background="@color/author_background"
+                  android:transitionName="@string/transition_author" />
     </FrameLayout>
 </layout>
