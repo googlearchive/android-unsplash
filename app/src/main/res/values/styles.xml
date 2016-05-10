@@ -28,7 +28,9 @@
     </style>
 
     <style name="App.Details">
-        <item name="android:windowSharedElementEnterTransition">@transition/shared_main_detail</item>
+        <item name="android:windowSharedElementEnterTransition">
+            @transition/shared_main_detail
+        </item>
     </style>
 
 </resources>

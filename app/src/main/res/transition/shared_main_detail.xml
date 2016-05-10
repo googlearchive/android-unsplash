@@ -16,7 +16,9 @@
 
 <transitionSet xmlns:android="http://schemas.android.com/apk/res/android">
     <transitionSet>
-        <targets android:targetId="@id/photo" />
+        <targets>
+            <target android:targetId="@id/photo" />
+        </targets>
         <changeBounds />
         <changeTransform />
         <changeClipBounds />
@@ -24,9 +26,10 @@
         <arcMotion android:minimumHorizontalAngle="40" />
     </transitionSet>
     <transitionSet>
-        <targets android:targetName="@string/transition_author" />
+        <targets>
+            <target android:targetId="@id/author" />
+        </targets>
         <transition class="com.example.android.unsplash.transition.TextResize" />
-        <arcMotion />
         <changeBounds />
     </transitionSet>
 </transitionSet>

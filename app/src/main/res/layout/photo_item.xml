@@ -20,7 +20,8 @@
     <FrameLayout android:layout_width="match_parent"
                  android:layout_height="@dimen/image_height"
                  android:stateListAnimator="@animator/raise"
-                 android:foreground="@drawable/grey_ripple">
+                 android:foreground="@drawable/grey_ripple"
+                 android:transitionGroup="true">
         <ImageView
                 android:id="@+id/photo"
                 android:layout_width="match_parent"
