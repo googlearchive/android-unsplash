@@ -75,6 +75,8 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoViewHolder> {
                                 binding.author.getPaddingTop(),
                                 binding.author.getPaddingRight(),
                                 binding.author.getPaddingBottom()));
+                intent.putExtra(IntentUtil.TEXT_COLOR,
+                        binding.author.getCurrentTextColor());
 
                 Pair<View, String> authorPair = new Pair<View, String>(
                         binding.author, binding.author.getTransitionName());

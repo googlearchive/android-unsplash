@@ -18,7 +18,9 @@ package com.example.android.unsplash;
 
 import android.app.Activity;
 import android.app.SharedElementCallback;
+import android.content.res.ColorStateList;
 import android.databinding.DataBindingUtil;
+import android.graphics.Color;
 import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
@@ -39,15 +41,19 @@ import java.util.List;
 public class DetailActivity extends Activity {
 
     private float targetTextSize;
+    private ColorStateList targetTextColors;
 
     private ActivityDetailBinding binding;
-    private SharedElementCallback mCallback = new SharedElementCallback() {
+
+    private SharedElementCallback elementCallback = new SharedElementCallback() {
         @Override
         public void onSharedElementStart(List<String> sharedElementNames,
                                          List<View> sharedElements,
                                          List<View> sharedElementSnapshots) {
             TextView author = binding.author;
             targetTextSize = author.getTextSize();
+            targetTextColors = author.getTextColors();
+            author.setTextColor(getIntent().getIntExtra(IntentUtil.TEXT_COLOR, Color.BLACK));
             float textSize = getIntent().getFloatExtra(IntentUtil.FONT_SIZE, targetTextSize);
             author.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize);
             Rect padding = getIntent().getParcelableExtra(IntentUtil.PADDING);
@@ -60,6 +66,7 @@ public class DetailActivity extends Activity {
                                        List<View> sharedElementSnapshots) {
             TextView author = binding.author;
             author.setTextSize(TypedValue.COMPLEX_UNIT_PX, targetTextSize);
+            author.setTextColor(targetTextColors);
             forceSharedElementLayout(binding.description);
         }
     };
@@ -73,7 +80,7 @@ public class DetailActivity extends Activity {
                 .setContentView(this, R.layout.activity_detail);
         binding.setData((Photo) getIntent().getParcelableExtra(IntentUtil.PHOTO));
 
-        setEnterSharedElementCallback(mCallback);
+        setEnterSharedElementCallback(elementCallback);
         int slideDuration = getResources().getInteger(R.integer.detail_desc_slide_duration);
 
         Glide.with(this)

@@ -13,6 +13,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
+
 <layout xmlns:android="http://schemas.android.com/apk/res/android">
     <data>
         <variable name="data" type="com.example.android.unsplash.data.model.Photo" />

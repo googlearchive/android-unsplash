@@ -20,6 +20,7 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
@@ -28,7 +29,10 @@ import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffColorFilter;
 import android.graphics.drawable.Drawable;
+import android.support.annotation.NonNull;
 import android.transition.Transition;
 import android.transition.TransitionValues;
 import android.util.AttributeSet;
@@ -119,6 +123,7 @@ public class TextResize extends Transition {
                 startData.paddingBottom);
         textView.setRight(textView.getLeft() + startData.width);
         textView.setBottom(textView.getTop() + startData.height);
+        textView.setTextColor(startData.textColor);
         textView.setTextSize(TypedValue.COMPLEX_UNIT_PX, startFontSize);
         final Bitmap startBitmap = captureTextBitmap(textView);
 
@@ -128,6 +133,7 @@ public class TextResize extends Transition {
         textView.setRight(textView.getLeft() + endData.width);
         textView.setBottom(textView.getTop() + endData.height);
         textView.setTextSize(TypedValue.COMPLEX_UNIT_PX, endFontSize);
+        textView.setTextColor(endData.textColor);
         if (startBitmap == null) {
             startFontSize = 0;
         }
@@ -163,7 +169,15 @@ public class TextResize extends Transition {
                 endData.paddingTop);
 
         AnimatorSet animatorSet = new AnimatorSet();
-        animatorSet.playTogether(left, top, progress);
+
+        if (startData.textColor == endData.textColor) {
+            animatorSet.playTogether(left, top, progress);
+        } else {
+            ObjectAnimator color = getTextColorAnimator(startData.textColor, endData.textColor,
+                    drawable);
+            animatorSet.playTogether(left, top, progress, color);
+        }
+
 
         // Remove the overlay and reset the colors after the animation completes
         animatorSet.addListener(new AnimatorListenerAdapter() {
@@ -177,6 +191,25 @@ public class TextResize extends Transition {
             }
         });
         return animatorSet;
+    }
+
+    @NonNull
+    private ObjectAnimator getTextColorAnimator(int startTextColor, int endTextColor,
+                                                final SwitchBitmapDrawable drawable) {
+        final PorterDuffColorFilter colorFilter =
+                new PorterDuffColorFilter(startTextColor, PorterDuff.Mode.SRC_IN);
+        drawable.setColorFilter(colorFilter);
+        ObjectAnimator color = ObjectAnimator.ofArgb(colorFilter, "color", startTextColor,
+                endTextColor);
+        // Just animating the color of the filter doesn't update the drawable,
+        // need to set it per update
+        color.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                drawable.setColorFilter(colorFilter);
+            }
+        });
+        return color;
     }
 
     private static Bitmap captureTextBitmap(TextView textView) {
@@ -219,6 +252,7 @@ public class TextResize extends Transition {
 
         /**
          * Offsets the left of the drawable by left. Used for animating the left padding.
+         *
          * @param left The left padding in pixels.
          */
         public void setLeft(int left) {
@@ -228,6 +262,7 @@ public class TextResize extends Transition {
 
         /**
          * Offsets the top of the drawable by top. Used for animating the top padding.
+         *
          * @param top The top padding in pixels.
          */
         public void setTop(int top) {
@@ -238,6 +273,7 @@ public class TextResize extends Transition {
         /**
          * Sets the progress of the scaled animation. This is used to choose how the bitmaps
          * are scaled and which bitmap to use.
+         *
          * @param progress The progress of the animation, between 0 and 1, inclusive.
          */
         public void setProgress(float progress) {
@@ -297,6 +333,7 @@ public class TextResize extends Transition {
 
         @Override
         public void setColorFilter(ColorFilter colorFilter) {
+            paint.setColorFilter(colorFilter);
         }
 
         @Override
@@ -318,6 +355,7 @@ public class TextResize extends Transition {
         public final int paddingBottom;
         public final int width;
         public final int height;
+        public final int textColor;
 
         public TextResizeData(TextView textView) {
             this.paddingLeft = textView.getPaddingLeft();
@@ -326,6 +364,7 @@ public class TextResize extends Transition {
             this.paddingBottom = textView.getPaddingBottom();
             this.width = textView.getWidth();
             this.height = textView.getHeight();
+            textColor = textView.getCurrentTextColor();
         }
     }
 }
