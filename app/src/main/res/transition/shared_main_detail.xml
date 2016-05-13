@@ -23,7 +23,7 @@
         <changeTransform />
         <changeClipBounds />
         <changeImageTransform />
-        <arcMotion android:minimumHorizontalAngle="40" />
+        <arcMotion android:maximumAngle="50" />
     </transitionSet>
     <transitionSet>
         <targets>
