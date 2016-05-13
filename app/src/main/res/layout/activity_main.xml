@@ -16,6 +16,7 @@
 
 <FrameLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -37,5 +38,9 @@
             android:padding="@dimen/grid_item_spacing"
             android:clipToPadding="false"
             android:scrollbars="vertical"
-            android:scrollbarStyle="outsideOverlay" />
+            android:scrollbarStyle="insideOverlay"
+            android:orientation="vertical"
+            app:layoutManager="android.support.v7.widget.GridLayoutManager"
+            app:spanCount="@integer/photo_grid_columns" />
+
 </FrameLayout>
