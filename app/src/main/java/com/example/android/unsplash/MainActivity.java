@@ -17,25 +17,17 @@
 package com.example.android.unsplash;
 
 import android.app.Activity;
-import android.app.ActivityOptions;
-import android.content.Intent;
-import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.util.Pair;
 import android.view.View;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 
 import com.example.android.unsplash.data.UnsplashService;
 import com.example.android.unsplash.data.model.Photo;
-import com.example.android.unsplash.databinding.PhotoItemBinding;
-import com.example.android.unsplash.ui.ItemClickSupport;
 import com.example.android.unsplash.ui.grid.GridMarginDecoration;
 import com.example.android.unsplash.ui.grid.PhotoAdapter;
-import com.example.android.unsplash.ui.grid.PhotoViewHolder;
 
 import java.util.List;
 
@@ -110,36 +102,5 @@ public class MainActivity extends Activity {
         grid.setLayoutManager(gridLayoutManager);
         grid.addItemDecoration(new GridMarginDecoration(gridSpacing));
         grid.setHasFixedSize(true);
-
-        ItemClickSupport.addTo(grid).setOnItemClickListener(
-                new ItemClickSupport.OnItemClickListener() {
-                    @Override
-                    public void onItemClicked(RecyclerView recyclerView, int position, View v) {
-                        Photo photo = adapter.getItem(position);
-                        Intent intent = new Intent(MainActivity.this, DetailActivity.class);
-                        intent.setAction(Intent.ACTION_VIEW);
-                        intent.putExtra(IntentUtil.PHOTO, photo);
-                        View author = v.findViewById(R.id.author);
-                        if (author instanceof TextView) {
-                            intent.putExtra(IntentUtil.FONT_SIZE,
-                                    ((TextView) author).getTextSize());
-                            intent.putExtra(IntentUtil.PADDING,
-                                    new Rect(author.getPaddingLeft(),
-                                            author.getPaddingTop(),
-                                            author.getPaddingRight(),
-                                            author.getPaddingBottom()));
-                        }
-
-                        PhotoItemBinding binding = ((PhotoViewHolder) recyclerView
-                                .getChildViewHolder(v)).getBinding();
-                        Pair<View, String> authorPair = new Pair<View, String>(
-                                binding.author, binding.author.getTransitionName());
-                        Pair<View, String> photoPair = new Pair<View, String>(
-                                binding.photo, binding.photo.getTransitionName());
-                        MainActivity.this.startActivity(intent,
-                                ActivityOptions.makeSceneTransitionAnimation(MainActivity.this,
-                                        authorPair, photoPair).toBundle());
-                    }
-                });
     }
 }
