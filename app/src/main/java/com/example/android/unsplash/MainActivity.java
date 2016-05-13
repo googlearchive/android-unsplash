@@ -50,8 +50,6 @@ public class MainActivity extends Activity {
 
     private RecyclerView grid;
     private ProgressBar empty;
-    private int columns;
-    private int gridSpacing;
     private PhotoAdapter adapter;
 
     @Override
@@ -66,8 +64,6 @@ public class MainActivity extends Activity {
 
         grid = (RecyclerView) findViewById(R.id.image_grid);
         empty = (ProgressBar) findViewById(android.R.id.empty);
-        columns = getResources().getInteger(R.integer.photo_grid_columns);
-        gridSpacing = getResources().getDimensionPixelSize(R.dimen.grid_item_spacing);
 
         setupRecyclerView();
 
@@ -89,26 +85,23 @@ public class MainActivity extends Activity {
     }
 
     private void setupRecyclerView() {
-        GridLayoutManager gridLayoutManager = new GridLayoutManager(this, columns);
+        GridLayoutManager gridLayoutManager = (GridLayoutManager) grid.getLayoutManager();
         gridLayoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
             @Override
             public int getSpanSize(int position) {
                 /* emulating https://material-design.storage.googleapis.com/publish/material_v_4/material_ext_publish/0B6Okdz75tqQsck9lUkgxNVZza1U/style_imagery_integration_scale1.png */
                 switch (position % 6) {
-                    case 0:
-                    case 1:
-                    case 2:
-                    case 4:
-                        return 1;
+                    case 5:
+                        return 3;
                     case 3:
                         return 2;
                     default:
-                        return 3;
+                        return 1;
                 }
             }
         });
-        grid.setLayoutManager(gridLayoutManager);
-        grid.addItemDecoration(new GridMarginDecoration(gridSpacing));
+        grid.addItemDecoration(new GridMarginDecoration(
+                getResources().getDimensionPixelSize(R.dimen.grid_item_spacing)));
         grid.setHasFixedSize(true);
 
         ItemClickSupport.addTo(grid).setOnItemClickListener(
