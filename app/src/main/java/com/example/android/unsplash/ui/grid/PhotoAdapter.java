@@ -18,7 +18,6 @@ package com.example.android.unsplash.ui.grid;
 
 import android.app.Activity;
 import android.app.ActivityOptions;
-import android.content.Context;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.graphics.Rect;
@@ -28,12 +27,10 @@ import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.example.android.unsplash.DetailActivity;
 import com.example.android.unsplash.IntentUtil;
-import com.example.android.unsplash.MainActivity;
 import com.example.android.unsplash.R;
 import com.example.android.unsplash.data.model.Photo;
 import com.example.android.unsplash.databinding.PhotoItemBinding;
@@ -54,7 +51,7 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoViewHolder> {
     }
 
     @Override
-    public PhotoViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public PhotoViewHolder onCreateViewHolder(final ViewGroup parent, int viewType) {
         final PhotoViewHolder holder = new PhotoViewHolder(
                 (PhotoItemBinding) DataBindingUtil.inflate(LayoutInflater.from(host),
                         R.layout.photo_item, parent, false));
@@ -79,12 +76,19 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoViewHolder> {
                         binding.author.getCurrentTextColor());
 
                 Pair<View, String> authorPair = new Pair<View, String>(
-                        binding.author, binding.author.getTransitionName());
+                        binding.author, host.getString(R.string.transition_author));
                 Pair<View, String> photoPair = new Pair<View, String>(
-                        binding.photo, binding.photo.getTransitionName());
+                        binding.photo, host.getString(R.string.transition_photo));
+                View decorView = host.getWindow().getDecorView();
+                View statusBackground = decorView.findViewById(android.R.id.statusBarBackground);
+                View navBackground = decorView.findViewById(android.R.id.navigationBarBackground);
+                Pair statusPair = Pair.create(statusBackground,
+                        statusBackground.getTransitionName());
+                Pair navPair = Pair.create(navBackground, navBackground.getTransitionName());
+
                 host.startActivity(intent,
                         ActivityOptions.makeSceneTransitionAnimation(host,
-                                authorPair, photoPair).toBundle());
+                                authorPair, photoPair, statusPair, navPair).toBundle());
             }
         });
         return holder;

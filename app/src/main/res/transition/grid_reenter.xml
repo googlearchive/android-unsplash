@@ -19,8 +19,4 @@
     android:slideEdge="top"
     android:duration="300"
     android:interpolator="@android:interpolator/linear_out_slow_in">
-    <targets>
-        <target android:excludeId="@android:id/navigationBarBackground" />
-        <target android:excludeId="@android:id/statusBarBackground" />
-    </targets>
 </slide>

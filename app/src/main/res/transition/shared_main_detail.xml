@@ -19,11 +19,12 @@
         <targets>
             <target android:targetId="@id/photo" />
         </targets>
-        <changeBounds />
+        <changeBounds>
+            <arcMotion android:maximumAngle="50"/>
+        </changeBounds>
         <changeTransform />
         <changeClipBounds />
         <changeImageTransform />
-        <arcMotion android:maximumAngle="50" />
     </transitionSet>
     <transitionSet>
         <targets>

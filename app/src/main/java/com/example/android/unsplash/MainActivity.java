@@ -62,7 +62,7 @@ public class MainActivity extends Activity {
         unsplashApi.getFeed(new Callback<List<Photo>>() {
             @Override
             public void success(List<Photo> photos, Response response) {
-                // the first items are really boring, get the last <n>
+                // the first items not interesting to us, get the last <n>
                 adapter = new PhotoAdapter(MainActivity.this,
                         photos.subList(photos.size() - PHOTO_COUNT, photos.size()));
                 grid.setAdapter(adapter);
