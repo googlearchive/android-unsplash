@@ -66,7 +66,7 @@ public class DetailActivity extends Activity {
                                        List<View> sharedElementSnapshots) {
             TextView author = binding.author;
             author.setTextSize(TypedValue.COMPLEX_UNIT_PX, targetTextSize);
-            author.setTextColor(targetTextColors);
+            author.setTextColor(targetTextColors != null ? targetTextColors : author.getTextColors());
             forceSharedElementLayout(binding.description);
         }
     };
