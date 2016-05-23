@@ -33,4 +33,10 @@
         <transition class="com.example.android.unsplash.transition.TextResize" />
         <changeBounds />
     </transitionSet>
+    <recolor>
+        <targets>
+            <target android:targetId="@android:id/statusBarBackground" />
+            <target android:targetId="@android:id/navigationBarBackground" />
+        </targets>
+    </recolor>
 </transitionSet>

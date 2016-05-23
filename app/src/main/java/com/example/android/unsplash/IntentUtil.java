@@ -21,4 +21,5 @@ public class IntentUtil {
     public static final String PADDING = "padding";
     public static final String PHOTO = "photo";
     public static final String TEXT_COLOR = "color";
+    public static final String RELEVANT_PHOTOS = "relevant";
 }

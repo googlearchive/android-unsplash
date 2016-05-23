@@ -55,7 +55,35 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoViewHolder> {
         final PhotoViewHolder holder = new PhotoViewHolder(
                 (PhotoItemBinding) DataBindingUtil.inflate(LayoutInflater.from(host),
                         R.layout.photo_item, parent, false));
-        holder.itemView.setOnClickListener(new View.OnClickListener() {
+        holder.itemView.setOnClickListener(createOnClickListener(holder));
+        return holder;
+    }
+
+    @Override
+    public void onBindViewHolder(final PhotoViewHolder holder, final int position) {
+        PhotoItemBinding binding = holder.getBinding();
+        Photo data = photos.get(position);
+        binding.setData(data);
+        binding.executePendingBindings();
+        Glide.with(host)
+                .load(holder.getBinding().getData().getPhotoUrl(requestedPhotoWidth))
+                .placeholder(R.color.placeholder)
+                .override(ImageSize.NORMAL[0], ImageSize.NORMAL[1])
+                .into(holder.getBinding().photo);
+    }
+
+    @Override
+    public int getItemCount() {
+        return photos.size();
+    }
+
+    @Override
+    public long getItemId(int position) {
+        return photos.get(position).id;
+    }
+
+    private View.OnClickListener createOnClickListener(final PhotoViewHolder holder) {
+        return new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 final int position = holder.getAdapterPosition();
@@ -96,29 +124,6 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoViewHolder> {
                 }
                 host.startActivity(intent, options.toBundle());
             }
-        });
-        return holder;
+        };
     }
-
-    @Override
-    public void onBindViewHolder(final PhotoViewHolder holder, final int position) {
-        holder.getBinding().setData(photos.get(position));
-        Glide.with(host)
-                .load(holder.getBinding().getData().getPhotoUrl(requestedPhotoWidth))
-                .placeholder(R.color.placeholder)
-                .override(ImageSize.NORMAL[0], ImageSize.NORMAL[1])
-                .into(holder.getBinding().photo);
-    }
-
-    @Override
-    public int getItemCount() {
-        return photos.size();
-    }
-
-    @Override
-    public long getItemId(int position) {
-        return photos.get(position).id;
-    }
-
-
 }

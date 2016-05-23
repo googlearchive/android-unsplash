@@ -22,6 +22,7 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.widget.ProgressBar;
 
 import com.example.android.unsplash.data.UnsplashService;
@@ -29,6 +30,7 @@ import com.example.android.unsplash.data.model.Photo;
 import com.example.android.unsplash.ui.grid.GridMarginDecoration;
 import com.example.android.unsplash.ui.grid.PhotoAdapter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import retrofit.Callback;
@@ -39,41 +41,63 @@ import retrofit.client.Response;
 public class MainActivity extends Activity {
 
     private static final int PHOTO_COUNT = 12;
+    private static final String TAG = "MainActivity";
 
     private RecyclerView grid;
     private ProgressBar empty;
-    private PhotoAdapter adapter;
+    private ArrayList<Photo> relevantPhotos;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        UnsplashService unsplashApi = new RestAdapter.Builder()
-                .setEndpoint(UnsplashService.ENDPOINT)
-                .build()
-                .create(UnsplashService.class);
+        postponeEnterTransition();
 
         grid = (RecyclerView) findViewById(R.id.image_grid);
         empty = (ProgressBar) findViewById(android.R.id.empty);
 
         setupRecyclerView();
 
-        unsplashApi.getFeed(new Callback<List<Photo>>() {
-            @Override
-            public void success(List<Photo> photos, Response response) {
-                // the first items not interesting to us, get the last <n>
-                adapter = new PhotoAdapter(MainActivity.this,
-                        photos.subList(photos.size() - PHOTO_COUNT, photos.size()));
-                grid.setAdapter(adapter);
-                empty.setVisibility(View.GONE);
-            }
+        if (savedInstanceState != null) {
+            relevantPhotos = savedInstanceState.getParcelableArrayList(IntentUtil.RELEVANT_PHOTOS);
+        }
+        displayData();
+    }
 
-            @Override
-            public void failure(RetrofitError error) {
-                Log.e(getClass().getCanonicalName(), "Error retrieving Unsplash feed:", error);
-            }
-        });
+    private void displayData() {
+        if (relevantPhotos != null) {
+            populateGrid();
+        } else {
+            UnsplashService unsplashApi = new RestAdapter.Builder()
+                    .setEndpoint(UnsplashService.ENDPOINT)
+                    .build()
+                    .create(UnsplashService.class);
+            unsplashApi.getFeed(new Callback<List<Photo>>() {
+                @Override
+                public void success(List<Photo> photos, Response response) {
+                    // the first items not interesting to us, get the last <n>
+                    relevantPhotos = new ArrayList<>(photos.subList(photos.size() - PHOTO_COUNT,
+                            photos.size()));
+                    populateGrid();
+                }
+
+                @Override
+                public void failure(RetrofitError error) {
+                    Log.e(TAG, "Error retrieving Unsplash feed:", error);
+                }
+            });
+        }
+    }
+
+    private void populateGrid() {
+        grid.setAdapter(new PhotoAdapter(this, relevantPhotos));
+        empty.setVisibility(View.GONE);
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putParcelableArrayList(IntentUtil.RELEVANT_PHOTOS, relevantPhotos);
+        super.onSaveInstanceState(outState);
     }
 
     private void setupRecyclerView() {
@@ -95,5 +119,14 @@ public class MainActivity extends Activity {
         grid.addItemDecoration(new GridMarginDecoration(
                 getResources().getDimensionPixelSize(R.dimen.grid_item_spacing)));
         grid.setHasFixedSize(true);
+        // Start the postponed transition when the recycler view is ready to be drawn.
+        grid.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+            @Override
+            public boolean onPreDraw() {
+                grid.getViewTreeObserver().removeOnPreDrawListener(this);
+                startPostponedEnterTransition();
+                return false;
+            }
+        });
     }
 }

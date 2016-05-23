@@ -42,7 +42,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="0dp"
                         android:scaleType="centerCrop"
-                        android:transitionName="@string/transition_photo" />
+                        android:transitionName= "@string/transition_photo" />
 
                 <Toolbar
                         android:id="@+id/toolbar"

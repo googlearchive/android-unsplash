@@ -46,6 +46,7 @@ public class DetailActivity extends Activity {
     private ActivityDetailBinding binding;
 
     private SharedElementCallback elementCallback = new SharedElementCallback() {
+
         @Override
         public void onSharedElementStart(List<String> sharedElementNames,
                                          List<View> sharedElements,
