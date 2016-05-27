@@ -85,14 +85,14 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoViewHolder> {
                 Pair statusPair = Pair.create(statusBackground,
                         statusBackground.getTransitionName());
                 ActivityOptions options;
-                // some phone doesn't has a 'navigation bar' so we do some extra check
-                if (navBackground != null) {
+                // Some devices don't have a navigation bar, so we have to check if it's available.
+                if (navBackground == null) {
+                    options = ActivityOptions.makeSceneTransitionAnimation(host,
+                            authorPair, photoPair, statusPair);
+                } else {
                     Pair navPair = Pair.create(navBackground, navBackground.getTransitionName());
                     options = ActivityOptions.makeSceneTransitionAnimation(host,
                             authorPair, photoPair, statusPair, navPair);
-                }else {
-                    options = ActivityOptions.makeSceneTransitionAnimation(host,
-                            authorPair, photoPair, statusPair);
                 }
                 host.startActivity(intent, options.toBundle());
             }
