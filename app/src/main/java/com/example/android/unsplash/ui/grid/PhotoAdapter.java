@@ -84,11 +84,17 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoViewHolder> {
                 View navBackground = decorView.findViewById(android.R.id.navigationBarBackground);
                 Pair statusPair = Pair.create(statusBackground,
                         statusBackground.getTransitionName());
-                Pair navPair = Pair.create(navBackground, navBackground.getTransitionName());
-
-                host.startActivity(intent,
-                        ActivityOptions.makeSceneTransitionAnimation(host,
-                                authorPair, photoPair, statusPair, navPair).toBundle());
+                ActivityOptions options;
+                // Some devices don't have a navigation bar, so we have to check if it's available.
+                if (navBackground == null) {
+                    options = ActivityOptions.makeSceneTransitionAnimation(host,
+                            authorPair, photoPair, statusPair);
+                } else {
+                    Pair navPair = Pair.create(navBackground, navBackground.getTransitionName());
+                    options = ActivityOptions.makeSceneTransitionAnimation(host,
+                            authorPair, photoPair, statusPair, navPair);
+                }
+                host.startActivity(intent, options.toBundle());
             }
         });
         return holder;
