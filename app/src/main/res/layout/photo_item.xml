@@ -28,12 +28,12 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:scaleType="centerCrop"
-                android:transitionName='@{@string/transition_photo + data.id}' />
+                android:transitionName="@{@string/transition_photo + data.id}" />
 
         <TextView android:id="@+id/author"
                   android:layout_width="match_parent"
                   android:layout_height="wrap_content"
-                  android:text='@{data.author}'
+                  android:text="@{data.author}"
                   android:layout_gravity="bottom|end"
                   android:textColor="@color/placeholder"
                   android:lines="1"
@@ -42,6 +42,6 @@
                   android:paddingStart="@dimen/padding_normal"
                   android:paddingEnd="@dimen/padding_normal"
                   android:background="@color/author_background"
-                  android:transitionName='@{@string/transition_author + data.id}' />
+                  android:transitionName="@{@string/transition_author + data.id}" />
     </FrameLayout>
 </layout>

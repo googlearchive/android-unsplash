@@ -16,5 +16,4 @@
 
 <resources>
     <integer name="photo_grid_columns">3</integer>
-    <integer name="detail_desc_slide_duration">300</integer>
 </resources>

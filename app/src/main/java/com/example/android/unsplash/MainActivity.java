@@ -17,9 +17,11 @@
 package com.example.android.unsplash;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.transition.Transition;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -27,8 +29,11 @@ import android.widget.ProgressBar;
 
 import com.example.android.unsplash.data.UnsplashService;
 import com.example.android.unsplash.data.model.Photo;
+import com.example.android.unsplash.ui.DetailSharedElementEnterCallback;
+import com.example.android.unsplash.ui.TransitionCallback;
 import com.example.android.unsplash.ui.grid.GridMarginDecoration;
 import com.example.android.unsplash.ui.grid.PhotoAdapter;
+import com.example.android.unsplash.ui.grid.PhotoViewHolder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +48,14 @@ public class MainActivity extends Activity {
     private static final int PHOTO_COUNT = 12;
     private static final String TAG = "MainActivity";
 
+    private final Transition.TransitionListener sharedExitListener =
+            new TransitionCallback() {
+                @Override
+                public void onTransitionEnd(Transition transition) {
+                    setExitSharedElementCallback(null);
+                }
+            };
+
     private RecyclerView grid;
     private ProgressBar empty;
     private ArrayList<Photo> relevantPhotos;
@@ -52,6 +65,8 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         postponeEnterTransition();
+        // Listener to reset shared element exit transition callbacks.
+        getWindow().getSharedElementExitTransition().addListener(sharedExitListener);
 
         grid = (RecyclerView) findViewById(R.id.image_grid);
         empty = (ProgressBar) findViewById(android.R.id.empty);
@@ -100,6 +115,38 @@ public class MainActivity extends Activity {
         super.onSaveInstanceState(outState);
     }
 
+    @Override
+    public void onActivityReenter(int resultCode, Intent data) {
+        postponeEnterTransition();
+        // Start the postponed transition when the recycler view is ready to be drawn.
+        grid.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+            @Override
+            public boolean onPreDraw() {
+                grid.getViewTreeObserver().removeOnPreDrawListener(this);
+                startPostponedEnterTransition();
+                return true;
+            }
+        });
+
+        if (data == null) {
+            return;
+        }
+
+        final int selectedItem = data.getIntExtra(IntentUtil.SELECTED_ITEM_POSITION, 0);
+        grid.scrollToPosition(selectedItem);
+
+        PhotoViewHolder holder = (PhotoViewHolder) grid.
+                findViewHolderForAdapterPosition(selectedItem);
+        if (holder == null) {
+            Log.w(TAG, "onActivityReenter: Holder is null, remapping cancelled.");
+            return;
+        }
+        DetailSharedElementEnterCallback callback =
+                new DetailSharedElementEnterCallback(getIntent());
+        callback.setBinding(holder.getBinding());
+        setExitSharedElementCallback(callback);
+    }
+
     private void setupRecyclerView() {
         GridLayoutManager gridLayoutManager = (GridLayoutManager) grid.getLayoutManager();
         gridLayoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
@@ -119,14 +166,6 @@ public class MainActivity extends Activity {
         grid.addItemDecoration(new GridMarginDecoration(
                 getResources().getDimensionPixelSize(R.dimen.grid_item_spacing)));
         grid.setHasFixedSize(true);
-        // Start the postponed transition when the recycler view is ready to be drawn.
-        grid.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
-            @Override
-            public boolean onPreDraw() {
-                grid.getViewTreeObserver().removeOnPreDrawListener(this);
-                startPostponedEnterTransition();
-                return false;
-            }
-        });
+
     }
 }

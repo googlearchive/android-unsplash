@@ -14,15 +14,7 @@
   ~ limitations under the License.
   -->
 
-<resources>
-
-    <color name="primary">#00BCD4</color>
-    <!--<color name="primary_dark">#00ACC1</color>-->
-    <color name="primary_dark">#333</color>
-    <color name="accent">#FFFF00</color>
-    <color name="placeholder">#ddd</color>
-    <color name="grey_ripple">#8ddd</color>
-    <color name="author_background">#66000000</color>
-    <color name="page_margin">#eee</color>
-
-</resources>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+       android:shape="rectangle">
+    <solid android:color="@color/page_margin" />
+</shape>

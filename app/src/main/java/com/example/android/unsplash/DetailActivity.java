@@ -17,103 +17,116 @@
 package com.example.android.unsplash;
 
 import android.app.Activity;
-import android.app.SharedElementCallback;
-import android.content.res.ColorStateList;
-import android.databinding.DataBindingUtil;
-import android.graphics.Color;
-import android.graphics.Rect;
-import android.os.Build;
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.view.ViewPager;
+import android.transition.Fade;
 import android.transition.Slide;
-import android.util.TypedValue;
+import android.transition.TransitionSet;
 import android.view.Gravity;
 import android.view.View;
 import android.view.animation.AnimationUtils;
-import android.widget.TextView;
+import android.widget.Toolbar;
 
-import com.bumptech.glide.Glide;
 import com.example.android.unsplash.data.model.Photo;
-import com.example.android.unsplash.databinding.ActivityDetailBinding;
-import com.example.android.unsplash.ui.ImageSize;
+import com.example.android.unsplash.ui.DetailSharedElementEnterCallback;
+import com.example.android.unsplash.ui.pager.DetailViewPagerAdapter;
 
-import java.util.List;
+import java.util.ArrayList;
 
 public class DetailActivity extends Activity {
 
-    private float targetTextSize;
-    private ColorStateList targetTextColors;
-
-    private ActivityDetailBinding binding;
-
-    private SharedElementCallback elementCallback = new SharedElementCallback() {
-
-        @Override
-        public void onSharedElementStart(List<String> sharedElementNames,
-                                         List<View> sharedElements,
-                                         List<View> sharedElementSnapshots) {
-            TextView author = binding.author;
-            targetTextSize = author.getTextSize();
-            targetTextColors = author.getTextColors();
-            author.setTextColor(getIntent().getIntExtra(IntentUtil.TEXT_COLOR, Color.BLACK));
-            float textSize = getIntent().getFloatExtra(IntentUtil.FONT_SIZE, targetTextSize);
-            author.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize);
-            Rect padding = getIntent().getParcelableExtra(IntentUtil.PADDING);
-            author.setPadding(padding.left, padding.top, padding.right, padding.bottom);
-        }
-
-        @Override
-        public void onSharedElementEnd(List<String> sharedElementNames,
-                                       List<View> sharedElements,
-                                       List<View> sharedElementSnapshots) {
-            TextView author = binding.author;
-            author.setTextSize(TypedValue.COMPLEX_UNIT_PX, targetTextSize);
-            author.setTextColor(targetTextColors != null ? targetTextColors : author.getTextColors());
-            forceSharedElementLayout(binding.description);
-        }
-    };
+    private static final String STATE_INITIAL_ITEM = "initial";
+    private ViewPager viewPager;
+    private int initialItem;
+    private final View.OnClickListener navigationOnClickListener =
+            new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    finishAfterTransition();
+                }
+            };
+    private DetailSharedElementEnterCallback sharedElementCallback;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        setContentView(R.layout.activity_detail);
+
+        postponeEnterTransition();
+
+        TransitionSet transitions = new TransitionSet();
+        Slide slide = new Slide(Gravity.BOTTOM);
+        slide.setInterpolator(AnimationUtils.loadInterpolator(this,
+                android.R.interpolator.linear_out_slow_in));
+        slide.setDuration(getResources().getInteger(android.R.integer.config_shortAnimTime));
+        transitions.addTransition(slide);
+        transitions.addTransition(new Fade());
+        getWindow().setEnterTransition(transitions);
+
+        Intent intent = getIntent();
+        sharedElementCallback = new DetailSharedElementEnterCallback(intent);
+        setEnterSharedElementCallback(sharedElementCallback);
+        initialItem = intent.getIntExtra(IntentUtil.SELECTED_ITEM_POSITION, 0);
+        setUpViewPager(intent.<Photo>getParcelableArrayListExtra(IntentUtil.PHOTO));
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar.setNavigationOnClickListener(navigationOnClickListener);
+
         super.onCreate(savedInstanceState);
+    }
 
-        int requestedPhotoWidth = getResources().getDisplayMetrics().widthPixels;
-        binding = DataBindingUtil
-                .setContentView(this, R.layout.activity_detail);
-        binding.setData((Photo) getIntent().getParcelableExtra(IntentUtil.PHOTO));
+    private void setUpViewPager(ArrayList<Photo> photos) {
+        viewPager = (ViewPager) findViewById(R.id.pager);
+        viewPager.setAdapter(new DetailViewPagerAdapter(this, photos, sharedElementCallback));
+        viewPager.setCurrentItem(initialItem);
 
-        setEnterSharedElementCallback(elementCallback);
-        int slideDuration = getResources().getInteger(R.integer.detail_desc_slide_duration);
-
-        Glide.with(this)
-                .load(binding.getData().getPhotoUrl(requestedPhotoWidth))
-                .placeholder(R.color.placeholder)
-                .override(ImageSize.NORMAL[0], ImageSize.NORMAL[1])
-                .into(binding.photo);
-        binding.toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+        viewPager.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
             @Override
-            public void onClick(View v) {
-                finishAfterTransition();
+            public void onLayoutChange(View v, int left, int top, int right, int bottom,
+                                       int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                if (viewPager.getChildCount() > 0) {
+                    viewPager.removeOnLayoutChangeListener(this);
+                    startPostponedEnterTransition();
+                }
             }
         });
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            Slide slide = new Slide(Gravity.BOTTOM);
-            slide.addTarget(R.id.description);
-            slide.setInterpolator(AnimationUtils.loadInterpolator(this, android.R.interpolator
-                    .linear_out_slow_in));
-            slide.setDuration(slideDuration);
-            getWindow().setEnterTransition(slide);
+        viewPager.setPageMargin(getResources().getDimensionPixelSize(R.dimen.padding_mini));
+        viewPager.setPageMarginDrawable(R.drawable.page_margin);
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putInt(STATE_INITIAL_ITEM, initialItem);
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        initialItem = savedInstanceState.getInt(STATE_INITIAL_ITEM, 0);
+        super.onRestoreInstanceState(savedInstanceState);
+    }
+
+    @Override
+    public void onBackPressed() {
+        setActivityResult();
+        super.onBackPressed();
+    }
+
+    @Override
+    public void finishAfterTransition() {
+        setActivityResult();
+        super.finishAfterTransition();
+    }
+
+    private void setActivityResult() {
+        if (initialItem == viewPager.getCurrentItem()) {
+            setResult(RESULT_OK);
+            return;
         }
+        Intent intent = new Intent();
+        intent.putExtra(IntentUtil.SELECTED_ITEM_POSITION, viewPager.getCurrentItem());
+        setResult(RESULT_OK, intent);
     }
-
-    private void forceSharedElementLayout(View view) {
-        int widthSpec = View.MeasureSpec.makeMeasureSpec(view.getWidth(),
-                View.MeasureSpec.EXACTLY);
-        int heightSpec = View.MeasureSpec.makeMeasureSpec(view.getHeight(),
-                View.MeasureSpec.EXACTLY);
-        view.measure(widthSpec, heightSpec);
-        view.layout(view.getLeft(), view.getTop(), view.getRight(), view.getBottom());
-    }
-
 
 }

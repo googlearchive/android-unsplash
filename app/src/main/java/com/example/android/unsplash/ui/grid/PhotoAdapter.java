@@ -36,15 +36,15 @@ import com.example.android.unsplash.data.model.Photo;
 import com.example.android.unsplash.databinding.PhotoItemBinding;
 import com.example.android.unsplash.ui.ImageSize;
 
-import java.util.List;
+import java.util.ArrayList;
 
 public class PhotoAdapter extends RecyclerView.Adapter<PhotoViewHolder> {
 
-    private final List<Photo> photos;
+    private final ArrayList<Photo> photos;
     private final Activity host;
     private final int requestedPhotoWidth;
 
-    public PhotoAdapter(@NonNull Activity activity, @NonNull List<Photo> photos) {
+    public PhotoAdapter(@NonNull Activity activity, @NonNull ArrayList<Photo> photos) {
         this.photos = photos;
         this.host = activity;
         requestedPhotoWidth = host.getResources().getDisplayMetrics().widthPixels;
@@ -89,41 +89,51 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoViewHolder> {
                 final int position = holder.getAdapterPosition();
                 if (position == RecyclerView.NO_POSITION) return;
 
-                final Photo photo = photos.get(position);
                 final PhotoItemBinding binding = holder.getBinding();
-                final Intent intent = new Intent(host, DetailActivity.class);
-                intent.setAction(Intent.ACTION_VIEW);
-                intent.putExtra(IntentUtil.PHOTO, photo);
-                intent.putExtra(IntentUtil.FONT_SIZE, binding.author.getTextSize());
-                intent.putExtra(IntentUtil.PADDING,
-                        new Rect(binding.author.getPaddingLeft(),
-                                binding.author.getPaddingTop(),
-                                binding.author.getPaddingRight(),
-                                binding.author.getPaddingBottom()));
-                intent.putExtra(IntentUtil.TEXT_COLOR,
-                        binding.author.getCurrentTextColor());
+                final Intent intent = getDetailActivityStartIntent(host, photos, position, binding);
+                final ActivityOptions activityOptions = getActivityOptions(binding);
 
-                Pair<View, String> authorPair = new Pair<View, String>(
-                        binding.author, host.getString(R.string.transition_author));
-                Pair<View, String> photoPair = new Pair<View, String>(
-                        binding.photo, host.getString(R.string.transition_photo));
-                View decorView = host.getWindow().getDecorView();
-                View statusBackground = decorView.findViewById(android.R.id.statusBarBackground);
-                View navBackground = decorView.findViewById(android.R.id.navigationBarBackground);
-                Pair statusPair = Pair.create(statusBackground,
-                        statusBackground.getTransitionName());
-                ActivityOptions options;
-                // Some devices don't have a navigation bar, so we have to check if it's available.
-                if (navBackground == null) {
-                    options = ActivityOptions.makeSceneTransitionAnimation(host,
-                            authorPair, photoPair, statusPair);
-                } else {
-                    Pair navPair = Pair.create(navBackground, navBackground.getTransitionName());
-                    options = ActivityOptions.makeSceneTransitionAnimation(host,
-                            authorPair, photoPair, statusPair, navPair);
-                }
-                host.startActivity(intent, options.toBundle());
+                host.startActivityForResult(intent, IntentUtil.REQUEST_CODE,
+                        activityOptions.toBundle());
             }
         };
+    }
+
+    @NonNull
+    private static Intent getDetailActivityStartIntent(Activity host, ArrayList<Photo> photos,
+                                                       int position, PhotoItemBinding binding) {
+        final Intent intent = new Intent(host, DetailActivity.class);
+        intent.setAction(Intent.ACTION_VIEW);
+        intent.putParcelableArrayListExtra(IntentUtil.PHOTO, photos);
+        intent.putExtra(IntentUtil.SELECTED_ITEM_POSITION, position);
+        intent.putExtra(IntentUtil.FONT_SIZE, binding.author.getTextSize());
+        intent.putExtra(IntentUtil.PADDING,
+                new Rect(binding.author.getPaddingLeft(),
+                        binding.author.getPaddingTop(),
+                        binding.author.getPaddingRight(),
+                        binding.author.getPaddingBottom()));
+        intent.putExtra(IntentUtil.TEXT_COLOR, binding.author.getCurrentTextColor());
+        return intent;
+    }
+
+    private ActivityOptions getActivityOptions(PhotoItemBinding binding) {
+        Pair authorPair = Pair.create(binding.author, binding.author.getTransitionName());
+        Pair photoPair = Pair.create(binding.photo, binding.photo.getTransitionName());
+        View decorView = host.getWindow().getDecorView();
+        View statusBackground = decorView.findViewById(android.R.id.statusBarBackground);
+        View navBackground = decorView.findViewById(android.R.id.navigationBarBackground);
+        Pair statusPair = Pair.create(statusBackground,
+                statusBackground.getTransitionName());
+
+        final ActivityOptions options;
+        if (navBackground == null) {
+            options = ActivityOptions.makeSceneTransitionAnimation(host,
+                    authorPair, photoPair, statusPair);
+        } else {
+            Pair navPair = Pair.create(navBackground, navBackground.getTransitionName());
+            options = ActivityOptions.makeSceneTransitionAnimation(host,
+                    authorPair, photoPair, statusPair, navPair);
+        }
+        return options;
     }
 }
