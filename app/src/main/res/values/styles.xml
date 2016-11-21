@@ -31,6 +31,7 @@
         <item name="android:windowSharedElementEnterTransition">
             @transition/shared_main_detail
         </item>
+        <item name="android:windowEnterTransition">@transition/content_main_detail</item>
     </style>
 
 </resources>

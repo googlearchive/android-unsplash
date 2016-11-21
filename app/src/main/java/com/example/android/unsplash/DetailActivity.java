@@ -20,12 +20,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
-import android.transition.Fade;
-import android.transition.Slide;
-import android.transition.TransitionSet;
-import android.view.Gravity;
 import android.view.View;
-import android.view.animation.AnimationUtils;
 import android.widget.Toolbar;
 
 import com.example.android.unsplash.data.model.Photo;
@@ -51,17 +46,7 @@ public class DetailActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         setContentView(R.layout.activity_detail);
-
         postponeEnterTransition();
-
-        TransitionSet transitions = new TransitionSet();
-        Slide slide = new Slide(Gravity.BOTTOM);
-        slide.setInterpolator(AnimationUtils.loadInterpolator(this,
-                android.R.interpolator.linear_out_slow_in));
-        slide.setDuration(getResources().getInteger(android.R.integer.config_shortAnimTime));
-        transitions.addTransition(slide);
-        transitions.addTransition(new Fade());
-        getWindow().setEnterTransition(transitions);
 
         Intent intent = getIntent();
         sharedElementCallback = new DetailSharedElementEnterCallback(intent);
