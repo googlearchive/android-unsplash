@@ -44,10 +44,12 @@ import com.example.android.unsplash.ui.grid.PhotoViewHolder;
 import java.util.ArrayList;
 import java.util.List;
 
-import retrofit.Callback;
-import retrofit.RestAdapter;
-import retrofit.RetrofitError;
-import retrofit.client.Response;
+import okhttp3.OkHttpClient;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends Activity {
 
@@ -89,22 +91,35 @@ public class MainActivity extends Activity {
         if (relevantPhotos != null) {
             populateGrid();
         } else {
-            UnsplashService unsplashApi = new RestAdapter.Builder()
-                    .setEndpoint(UnsplashService.ENDPOINT)
-                    .build()
-                    .create(UnsplashService.class);
-            unsplashApi.getFeed(new Callback<List<Photo>>() {
+            OkHttpClient.Builder httpClient = new OkHttpClient.Builder();
+
+            Retrofit.Builder builder =
+                    new Retrofit.Builder()
+                            .baseUrl(UnsplashService.ENDPOINT)
+                            .addConverterFactory(
+                                    GsonConverterFactory.create()
+                            );
+
+            Retrofit retrofit =
+                    builder
+                            .client(
+                                    httpClient.build()
+                            )
+                            .build();
+
+            UnsplashService unsplashApi =  retrofit.create(UnsplashService.class);
+            unsplashApi.getFeed().enqueue(new Callback<List<Photo>>() {
                 @Override
-                public void success(List<Photo> photos, Response response) {
+                public void onResponse(Call<List<Photo>> call, Response<List<Photo>> response) {
                     // the first items not interesting to us, get the last <n>
-                    relevantPhotos = new ArrayList<>(photos.subList(photos.size() - PHOTO_COUNT,
-                            photos.size()));
+                    relevantPhotos = new ArrayList<>(response.body().subList(response.body().size() - PHOTO_COUNT,
+                            response.body().size()));
                     populateGrid();
                 }
 
                 @Override
-                public void failure(RetrofitError error) {
-                    Log.e(TAG, "Error retrieving Unsplash feed:", error);
+                public void onFailure(Call<List<Photo>> call, Throwable t) {
+                    Log.e(TAG, "Error retrieving Unsplash feed:", t);
                 }
             });
         }
